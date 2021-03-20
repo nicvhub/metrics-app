@@ -2,7 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
+use App\Models\OutOfTenLogger;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -19,5 +19,5 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::middleware('auth:api')->get('/anxiety', function (Request $request)  {
-    return response()->json(["greeting" => "hello"]);
+    return response()->json(OutOfTenLogger::all());
 });
