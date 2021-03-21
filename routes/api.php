@@ -18,6 +18,10 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::middleware('auth:api')->get('/anxiety', function (Request $request)  {
+Route::middleware('auth:api')->get('/anxiety', function ()  {
     return response()->json(OutOfTenLogger::all());
+});
+
+Route::middleware('auth:api')->post('/anxiety', function (Request $request)  {
+    OutOfTenLogger::create($request->all());
 });

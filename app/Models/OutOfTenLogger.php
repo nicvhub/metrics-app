@@ -8,7 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class OutOfTenLogger extends Model
 {
     use HasFactory;
+
     public $timestamps = true;
     protected $hidden = ['updated_at'];
+    protected $fillable = [
+        'score',
+    ];
     protected $score;
 }

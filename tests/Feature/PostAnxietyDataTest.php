@@ -6,27 +6,23 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Tests\TestCase;
 use App\Models\OutOfTenLogger;
+use function MongoDB\BSON\toJSON;
 
-class GetAnxietyDataTest extends TestCase
+class PostAnxietyDataTest extends TestCase
 {
     use WithoutMiddleware;
     use RefreshDatabase;
 
-    public function testAnxietyRouteGetsData()
+    public function testAnxietyRoutePostsData()
     {
         // given
-        OutOfTenLogger::factory(10)->create();
+        $data = ["score" => 5];
 
         // when
-        $response = $this->get("/api/anxiety/");
-        $responseData = collect($response->json());
+        $response = $this->post("/api/anxiety/", $data);
 
         // then
         $response->assertOk();
-        $this->assertEquals(10, $responseData->count());
-        $this->assertArrayHasKey("id", $responseData[0]);
-        $this->assertArrayHasKey("score", $responseData[0]);
-        $this->assertArrayHasKey("created_at", $responseData[0]);
     }
 }
 
