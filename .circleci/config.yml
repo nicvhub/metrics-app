@@ -1,42 +1,50 @@
-version: 2 # use CircleCI 2.0
-
-jobs: # a collection of steps
-  build: # runs not using Workflows must have a `build` job as entry point
-    docker: # run the steps with Docker
-      - image: circleci/php:8.0-node-browsers # ...with this image as the primary container; this is where all `steps` will run
-        auth:
-          username: mydockerhub-user
-          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
-      - image: circleci/mysql:8
+version: 2
+jobs:
+  build:
+    docker:
+      # Specify the version you desire here
+      - image: circleci/php:7.1-browsers
+      - image: circleci/mysql:5.7
         environment:
-          MYSQL_ALLOW_EMPTY_PASSWORD: true
-    working_directory: ~/laravel # directory where steps will run
-    steps: # a set of executable commands
-      - checkout # special step to check out source code to working directory
-      - run: sudo apt install -y zlib1g-dev
-      - run: sudo docker-php-ext-install zip
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_USER: root
+          MYSQL_ROOT_PASSWORD: ''
+          MYSQL_DATABASE: laravel
+
+    working_directory: ~/laravel
+
+    steps:
+      - checkout
+      - run:
+          name: Install PHP exts
+          command: |
+            sudo docker-php-ext-install zip
+            sudo docker-php-ext-install pdo_mysql
+            sudo apt install -y mysql-client
       - run: sudo composer self-update
-      - restore_cache: # special step to restore the dependency cache if `composer.lock` does not change
+
+      # Download and cache dependencies
+      - restore_cache:
           keys:
-            - composer-v1-{{ checksum "composer.lock" }}
-            # fallback to using the latest cache if no exact match is found (See https://circleci.com/docs/2.0/caching/)
-            - composer-v1-
+            - v1-dependencies-{{ checksum "composer.json" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+
       - run: composer install -n --prefer-dist
-      - save_cache: # special step to save the dependency cache with the `composer.lock` cache key template
-          key: composer-v1-{{ checksum "composer.lock" }}
+
+      - save_cache:
           paths:
-            - vendor
-      - restore_cache: # special step to restore the dependency cache if `package-lock.json` does not change
-          keys:
-            - node-v1-{{ checksum "package-lock.json" }}
-            # fallback to using the latest cache if no exact match is found (See https://circleci.com/docs/2.0/caching/)
-            - node-v1-
-      - run: yarn install
-      - save_cache: # special step to save the dependency cache with the `package-lock.json` cache key template
-          key: node-v1-{{ checksum "package-lock.json" }}
-          paths:
-            - node_modules
-      - run: touch storage/testing.sqlite
-      - run: php artisan migrate --env=testing --database=mysql --force
-      - run: ./vendor/bin/codecept build
-      - run: ./vendor/bin/codecept run
+            - ./vendor
+          key: v1-dependencies-{{ checksum "composer.json" }}
+
+      - run:
+          name: Setup Laravel stuffs
+          command: |
+            php artisan migrate --force
+      - run: ./vendor/bin/phpunit
+
+workflows:
+  version: 2
+  notify_deploy:
+    jobs:
+      - build
