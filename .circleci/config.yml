@@ -7,10 +7,15 @@ jobs: # a collection of steps
         auth:
           username: mydockerhub-user
           password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+      - image: circleci/mysql:8
+        environment:
+          MYSQL_USER: root
+          MYSQL_ALLOW_EMPTY_PASSWORD: true
     working_directory: ~/laravel # directory where steps will run
     steps: # a set of executable commands
       - checkout # special step to check out source code to working directory
-      - run: sudo apt install -y libsqlite3-dev zlib1g-dev
+      - run: sudo apt install -y mysql-client
+      - run: sudo apt install -y zlib1g-dev
       - run: sudo docker-php-ext-install zip
       - run: sudo composer self-update
       - restore_cache: # special step to restore the dependency cache if `composer.lock` does not change
