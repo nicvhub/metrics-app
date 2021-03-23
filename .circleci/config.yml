@@ -9,7 +9,6 @@ jobs: # a collection of steps
           password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
       - image: circleci/mysql:8
         environment:
-          MYSQL_USER: root
           MYSQL_ALLOW_EMPTY_PASSWORD: true
     working_directory: ~/laravel # directory where steps will run
     steps: # a set of executable commands
