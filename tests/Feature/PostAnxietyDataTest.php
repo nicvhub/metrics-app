@@ -10,8 +10,7 @@ use function MongoDB\BSON\toJSON;
 
 class PostAnxietyDataTest extends TestCase
 {
-    use WithoutMiddleware;
-    use RefreshDatabase;
+    use WithoutMiddleware, RefreshDatabase;
 
     public function testAnxietyRoutePostsData()
     {
