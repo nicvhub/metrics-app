@@ -47,5 +47,5 @@ jobs:
       # run tests with phpunit
       - run:
           name: "Run Unit Tests"
-          command: ./vendor/bin/phpunit tests/Unit
+          command: ./vendor/bin/artisan test
 
