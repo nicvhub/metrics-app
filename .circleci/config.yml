@@ -1,56 +1,51 @@
+# PHP CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-php/ for more details
+#
 version: 2
 jobs:
   build:
     docker:
       # Specify the version you desire here
       - image: circleci/php:8.0-node-browsers
-      - image: circleci/mysql:8
-        environment:
-          MYSQL_ALLOW_EMPTY_PASSWORD: yes
-          MYSQL_ROOT_PASSWORD: ''
-          MYSQL_DATABASE: laravel
-
-    working_directory: ~/laravel
 
     steps:
       - checkout
+
       - run:
-          name: install dockerize
-          command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
-          environment:
-            DOCKERIZE_VERSION: v0.3.0
-      - run:
-          name: Wait for db
-          command: dockerize -wait tcp://localhost:3306 -timeout 1m
-      - run:
-          name: Install PHP exts
+          name: "Prepare Environment"
           command: |
+            sudo apt update
             sudo docker-php-ext-install zip
-            sudo docker-php-ext-install pdo_mysql
-      - run: sudo composer self-update
+
+      - run:
+          name: "Create Environment file"
+          command: |
+            mv .env.testing .env
 
       # Download and cache dependencies
       - restore_cache:
           keys:
+            # "composer.lock" can be used if it is committed to the repo
             - v1-dependencies-{{ checksum "composer.json" }}
             # fallback to using the latest cache if no exact match is found
             - v1-dependencies-
 
-      - run: composer install -n --prefer-dist
+      - run:
+          name: "Install Dependencies"
+          command: composer install -n --prefer-dist
 
       - save_cache:
+          key: v1-dependencies-{{ checksum "composer.json" }}
           paths:
             - ./vendor
-          key: v1-dependencies-{{ checksum "composer.json" }}
 
       - run:
-          name: Setup Laravel stuffs
-          command: |
-            php artisan migrate --force
-      - run: ./vendor/bin/phpunit
+          name: "Generate App key"
+          command: php artisan key:generate
 
-workflows:
-  version: 2
-  notify_deploy:
-    jobs:
-      - build
+      # run tests with phpunit
+      - run:
+          name: "Run Unit Tests"
+          command: ./vendor/bin/phpunit tests/Unit
+

@@ -9,7 +9,7 @@ use App\Models\OutOfTenLogger;
 
 class GetAnxietyDataTest extends TestCase
 {
-    use WithoutMiddleware;
+    use WithoutMiddleware, RefreshDatabase;
 
     public function testAnxietyRouteGetsData()
     {
